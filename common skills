@@ -1,10 +1,32 @@
 #include<iostream>
+#include<memory.h>
 
 using namespace std;
 
 
 int main()
 {
+    //skill 1
+    //Use the order of the index of an array.In fact it's an ascending sqeuence,
+    //so a disorderd sequence of numbers(chars also) can be subsequently ordered as long as they're used as index.
+    
+    //example:cout all the elements(within 0-20) of a disorderd  array ascendingly within O(n)
+    
+    int arr[]={0,4,1,18,15,7,9,12,10};
+    int temp[21];//bear in mind that whar we cout finall is index,elements in arr meanwhile.They are 
+                 //between 0-20,so the length of temp should be at least 21
+    memset(temp,0,21*sizeof(int));//initial temp with 0
+    
+    int i;
+    for(i=0;i<sizeof(arr)/sizeof(int);i++)
+        temp[arr[i]]++;
+    
+    for(i=0;i<21;i++) if(temp[i]==1) cout<<i<<endl;
+    
+//////////////////////////////////////////////////////////////////////////////////////////
+
+    //skill 2
+
 
 
 

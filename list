@@ -1,0 +1,159 @@
+ADT List
+Data
+    线性表的数据对象集合为{a1,a2,a3,......,ai,....,an}。每个元素的数据类型均为DataType。数据元素之间是一对一关系。元素ai是线性表的第i个数据元素
+    一个数据元素可以有若干个数据项组成，例如 学号   姓名    出生年月   家庭地址
+                                              1     lucy     2000.1     东大道
+                                              2     Kate     2001.1     南大街
+Operation
+    InitList(*L): 建立一个空的线性表L
+    ListEmpty(L): 若线性表为空，返回true，否则false
+    ClearList(*L): 将线性表清空
+    GetElem(L,i,*e): 将线性表L中的第i个元素值返回给e//从这几个操作函数的参数可知，想要实际的改变什么就要传入它的地址
+    ......
+    
+endADT
+
+利用上述基本操作，可以实现更复杂的操作，例在La和Lb之前取并集，并入La
+思路：循环Lb，判断不在La中的元素，并入La
+
+void union(List *La,List Lb)
+{
+    int La_len,Lb_len,i;
+    ElemType e;//ElemType就是指线性表内元素的数据类型。
+    La_len = ListLength(*La);//涉及到未定义的函数，都是List类型的基本操作
+    Lb_len = ListLength(Lb);
+    
+    for(i=1;i<=Lb_len;i++)
+    {
+        GetElem(Lb,i,&e);
+        if(!LocateElem(*La，e))//若La中存在和e相同的元素
+            ListInsert(La,++La_len,e);//在末尾插入元素e
+    }
+
+}
+
+为了实现逻辑结构，我们需要考虑线性表的存储结构
+
+对于顺序存储结构 
+
+  用数组来实现
+    
+    #define MAXSIZE 20
+    typedef int ElemType
+    struct SqList
+    {
+        ElemType data[MAXSIZE];//区别数组长度与线性表长度。线性表从a1开始，而数组从下标0开始，所以元素ai存储于下标为i-1的位置
+        int length;
+    }
+    
+    顺序存储结构可以很容易的得到线性表中元素的地址。存储器中的每个存储单元都有自己的编号，这个编号称为地址。每个数据元素都要占据一定个存储单元。这里假设是c个单元。
+    线性表的第i个数据元素的存储位置和第1个数据元素的存储位置满足下列关系（LOC表示获得地址的函数）
+    LOC(ai)=LOC(a1)+(i-1)c //结合大话数据结构p50图理解。利用此公式，可以随时算出线性表中任意位置的地址，所以访问线性表（在任意位置存(修改某一位置)取(读取某一位置)元素），对
+                           //于计算机来说都是相同的时间，即他的存取时间性能为O(1)，拥有这一特点的存储结构称为随机存取结构
+    
+  继而才能实现种种基本操作
+    
+    实现获取元素操作
+    初始条件：顺序线性表L已存在
+    操作结果：函数用e返回一个整数；同时返回1为成功，0为异常，用Status来表示执行状态。
+    注意：线性表的第i个位置对应数组的下标i-1
+    
+    #define OK 1
+    #define ERROR 0
+    #define TRUE 1
+    #define FALSE 0
+    typedef int Status
+    
+    Status GetElem(SqList L,int i,ElemType *e)
+    {
+        if(L.length==0||i<1||i>L.length) return ERROR;
+        *e = L.data[i-1];
+        return OK;
+    }
+    
+    实现插入操作
+    初始条件：顺序线性表已存在
+    操作结果：在L中第i个位置之前插入新的数据元素e，L的长度加1
+    注意：可能涉及原有元素的移动
+    
+    Status ListInsert(SqList *L,int i,ElemType e)
+    {
+        int k;
+        if(L->length==MAXSIZE || i<1 || i>L-length+1)  return ERROR;
+        if(i<=L->length)//若插入数据不在表尾
+        {
+            for(k=L->length-1;k>=i-1;k--)//从最后一位元素开始后移，直至元素i（对应下标i-1）移动完成，为插入的元素腾出位置
+                L->data[k+1]=L->data[k];
+        }
+        L->data[i-1]=e;//插入新元素
+        L->length++;
+        
+        return OK;
+     }
+     
+     实现删除操作
+     初始条件：顺序线性表L已存在
+     操作结果：删除L的第i个元素，并用e返回其值，L的长度减1
+     注意：可能要移动原有元素
+     
+     Status ListDelete(SqList *L,int i, ElemType *e)
+     {
+         int k;
+         if(L->length==0 || i<1 || i>L->length) return ERROR;
+         *e=L->data[i-1];
+         if(i<L->length)
+         {
+             for(k=i;k<L->length;k++)//将删除位置的后继元素前移
+                 L->data[k-1]=L->data[k];
+         }
+         L-length--;
+         return OK;
+     }
+     
+     线性表插入删除元素的时间复杂度都是O(n)
+
+对于链式存储结构
+
+    实现
+ 
+      
+         
+    
+         
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+

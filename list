@@ -113,8 +113,216 @@ void union(List *La,List Lb)
      线性表插入删除元素的时间复杂度都是O(n)
 
 对于链式存储结构
+    
+    描述  在此结构中，数据元素变成了两部分:数据域存原来的数据，新增的指针域存储指向直接后继的指针（凭此实现线性的逻辑结构）
+          用结点来称呼这样的每一个数据元素。n个结点链接成一个链表（区别顺序表）。因为每个结点只包含一个指针域，所以又叫做单链表
+          链表的尾结点指针为NULL
+          
+          头节点与头指针
+          为了方便操作，可以选择在链表的第一个节点之前附加一个头节点。有了头节点，在第一个结点前插入结点和删除第一个结点的操作
+          就与其他结点统一（结合下方对应操作实现代码看）
+          
+          if 存在头节点 头指针指向头结点 else 指向第一个节点
+          头指针具有标志作用，所以用头指针作为链表的名字。无论链表是否为空，头指针一定不为空。
+    
+    实现  typedef struct Node
+                  {
+                      ElemType data;
+                      Node *next;
+                  }*LinkList;
+    操作
+           单链表的读取
+           初始条件 链表L已经存在
+           操作结果 用e返回L中的第i个元素
+           
+           Status GetElem(LinkList L,int i,ElemType *e)
+           {
+               int j;
+               LinkList p;
+               p=L->next;//指向第一个结点
+               j=1;//j为计数器，记录当前的p指向第几个结点
+               while(p && j<i)//单链表结构中没有定义表长，所以不知道要循环多少次，用for就不方便
+                              //条件p用于保证实在第一个结点到最后一个结点之间查找，条件j<i是说若未到结点i就继续
+                              //若j=1且p仍未true，就可以结束循环，已经找到了
+               {
+                   p=p->next;
+                   ++j;
+               }
+               if(!p||j>i) return ERROR;//第i个结点不存在。分为两种情况 ！p就是第一个节点到最后一个结点全部查找，都没有
+                                                                        j>i 是排除参数i=0或者-1等的无效位置
+                                                                                                                             
+               *e=p->data;
+               return OK;
+           }
+           
+           单链表的插入与删除
+           初始条件 链表L已经存在
+           操作结果 在L中第i个结点之前插入e，使得新结点成为结点i，原来的结点i成为结点i+1
+           注意 在链表中，想要操作某个结点甚至说仅仅要得到它的地址，都必须先访问它的直接前驱
+                这也是为什么链表的操作需从头结点开始.这里要是新结点指向原来的结点i，需要它的地址
+                那么就要先找到结点i-1
+                下方的“顺序不能换”处也是这个道理
+           
+           Status ListInsert(LinkList L,int i,ElemType e)
+           {
+               LinkList s,p=L;
+               int j=1;  若是i=1，那么涉及到头结点。所以这里从头结点就开始计数，标号为1
+                         下方的while与if的理解与GetElem中的几乎完全相同
+               
+               while(p && j<i)
+               {
+                    p=p->next;
+                    j++;
+               }
+               
+               if(!p || j>i) return ERROR;
+               
+               s=(LinkList)malloc(sizeof(Node));
+               s->data=e;
+               
+               s->next=p->next;   下面两步顺序不能换。如果换了s就找不到该指向谁了
+               p->next=s;        
+               
+               return 1;
+           }
+           
+           单链表的删除
+           初始条件 链表L已经存在
+           操作结果 删除L的第i个结点，并用e返回其值
+           注意 删除某个节点i后，用到的指针操作涉及三个结点i，i+1，i-1，所以还是先要找到i-1
+                但是若要删除尾结点，那么结点i-1就是倒数第二个节点。说明直接前驱的寻找范围是头结点至于倒数第二结点
+                下方while （）中的p->next可以满足这个要求
+           
+           Status ListDelete(LinkList L,int i,ElemType *e)
+           {
+               LinkList q,p=L;
+               int j;
+               
+               while(p->next && j<i)  
+               {
+                   p=p->next;
+                   j++;
+               }
+               if(!(p->next) || j>i) return 0;
+               
+               q = p->next;//先把结点i复制一份，若直接p->next=p->next->next 就是去p->next了，之后要free它就会失败
+               p->next=q->next;
+               *e=q->data;
+               free(q);
+               
+               return OK;
+           }
+           
+           总的来说，顺序表和链表的插删操作时间复杂度都是O(n)，但是前者的复杂在移动原有数据
+           后者仅仅是找地址。所以单链表的插删操作时间性能更优
+           
+           单链表的整表创建
+           单链表的创建过程是一个动态生成链表的过程。从空表的初始状态起，依次建立各元素，并逐个插入链表
+           
+           尾插法：把新结点插在终端结点的后面，作为新的终端结点
+           操作结果 随机产生n个元素的值，建立带头结点的单链表L
+           void CreateListTail(LinkList L,int n)
+           {
+           
+               LinkList p,r;
+               int i;
+               srand(time(0));//初始化随机数种子
+               L=(LinkList)malloc(sizeof(Node));
+               r=L;//r指向尾结点
+               for(i=0;i<n;i++)
+               {
+                   p=(LinkList)malloc(sizeof(Node));//生成新结点
+                   p->data = rand()%100+1;//生成100以内的数字
+                   r->next=p;//链接原来的尾结点与新尾结点
+                   r=p;//让r指向新的尾结点
+               }
+               r->next=NULL;
+           
+           }
+           
+           头插法：始终让新结点排在第一位
+           操作结果 随机产生n个元素的值，建立带头结点的点链表L
+           void creaeeListHead(LinkList p,int n)
+           {
+               LinkList p;
+               int i;
+               srand(time(0));
+               L->next=NULL;
+               for(i=0;i<n;i++)
+               {
+                   p=(LinkList)malloc(sizeof(Node));
+                   p->data=rand()%100+1;
+                   p->next=L->next;
+                   L->next=p;
+               }
+           }
+           
+           单链表的整表删除
+           初始条件 链表L已经存在
+           操作结果 将L重置为空表
+           
+           Status clearList(LinkList L)
+           {
+               LinkList p,r;
+               p=L;
+               while(p)
+               {
+                   r=p->next;
+                   free(p);
+                   p=r;
+               }
+               L->next=NULL;
+               return Ok;
+           }
 
-    实现
+总结顺序链表和单链表的优缺点
+    时间性能  查找 顺O(1)
+                   链式O(n)
+              插删 顺O(n)
+                   链式 找出其位置后，插删仅为O(1)
+    空间性能  顺序 需要预分配空间，容易浪费或者上溢
+              链式 无需预分配，元素个数不受限制
+
+
+静态链表 定义 有些语言没有指针，导致无法构建实际的链式存储结构。但是可以用数组下标代替指针。
+              这样的数组元素是一个结构体component，数据域和链表中的一样。指针域里面存储的是
+              指针的替代品游标cursor（实际上是数组的下标）。用数组描述的链表叫做静态链表
+         
+         实现其基本结构
+             #define MAXSIZE 1000 数组要大一些，防止插入时溢出
+             typedef struct component
+             {
+                 ElemType data;
+                 int cur;   cut=0相当于NULL
+             }staticLinkList[MAXSIZE];//这样写使得staticLinkList成为类型数组int [MAXSIZE]的指针，此类型的指针变量名就是数组名
+         
+         说明 数组中未被当作链表的部分称为备用链表。数组的第一个元素和最后一个元素特殊处理。二者
+              都没有data。前者的cur存储备用链表第一个结点的下标。后者的cur存储链表第一结点的下标。
+              后者相当于头结点。
+          
+          基本操作
+              初始化静态链表
+                  操作结果 将一维数组space中的各分量链成一备用链表。space[0].cur是其头指针
+                  status initList(StaticLinkList space)
+                      {
+                          int i;
+                          for(i=0;i<MAXSIZE-1;i++) space[i].cur=i+1;//备用链表的各个结点也是链在一起的
+                          space[MAXSIZE-1]=0;//目前静态链表为空链表，头结点的指针域应当为NULL
+                          return OK;
+                      }
+                      
+              插入操作
+              
+                   
+                  
+              
+               
+               
+             
+               
+    
+          
+          
  
       
          

@@ -39,30 +39,6 @@ void union(List *La,List Lb)
   用数组来实现
     
     #define MAXSIZE 20
-    typedef int ElemType
-    struct SqList
-    {
-        ElemType data[MAXSIZE];//区别数组长度与线性表长度。线性表从a1开始，而数组从下标0开始，所以元素ai存储于下标为i-1的位置
-        int length;
-    }
-    
-    顺序存储结构可以很容易的得到线性表中元素的地址。存储器中的每个存储单元都有自己的编号，这个编号称为地址。每个数据元素都要占据一定个存储单元。这里假设是c个单元。
-    线性表的第i个数据元素的存储位置和第1个数据元素的存储位置满足下列关系（LOC表示获得地址的函数）
-    LOC(ai)=LOC(a1)+(i-1)c //结合大话数据结构p50图理解。利用此公式，可以随时算出线性表中任意位置的地址，所以访问线性表（在任意位置存(修改某一位置)取(读取某一位置)元素），对
-                           //于计算机来说都是相同的时间，即他的存取时间性能为O(1)，拥有这一特点的存储结构称为随机存取结构
-    
-  继而才能实现种种基本操作
-    
-    实现获取元素操作
-    初始条件：顺序线性表L已存在
-    操作结果：函数用e返回一个整数；同时返回1为成功，0为异常，用Status来表示执行状态。
-    注意：线性表的第i个位置对应数组的下标i-1
-    
-    #define OK 1
-    #define ERROR 0
-    #define TRUE 1
-    #define FALSE 0
-    typedef int Status
     
     Status GetElem(SqList L,int i,ElemType *e)
     {
@@ -286,7 +262,7 @@ void union(List *La,List Lb)
 
 静态链表 定义 有些语言没有指针，导致无法构建实际的链式存储结构。但是可以用数组下标代替指针。
               这样的数组元素是一个结构体component，数据域和链表中的一样。指针域里面存储的是
-              指针的替代品游标cursor（实际上是数组的下标）。用数组描述的链表叫做静态链表
+              指针的替代品游标cursor（实际上是数组的下标）。用数组描述的链表叫做静态链表.
          
          实现其基本结构
              #define MAXSIZE 1000 数组要大一些，防止插入时溢出
@@ -297,8 +273,8 @@ void union(List *La,List Lb)
              }staticLinkList[MAXSIZE];//这样写使得staticLinkList成为类型数组int [MAXSIZE]的指针，此类型的指针变量名就是数组名
          
          说明 数组中未被当作链表的部分称为备用链表。数组的第一个元素和最后一个元素特殊处理。二者
-              都没有data。前者的cur存储备用链表第一个结点的下标。后者的cur存储链表第一结点的下标。
-              后者相当于头结点。
+              都没有data。前者的cur存储备用链表第一个结点的下标,相当于备用链表的头结点。后者的cur存储链表第一结点的下标，
+              相当于链表的头结点。这两个链表都有终端结点，前者游标为数组最后一个元素的下标，后者游标为0。所以静态链表其实就是一般链表的高仿。
           
           基本操作
               初始化静态链表
@@ -306,62 +282,120 @@ void union(List *La,List Lb)
                   status initList(StaticLinkList space)
                       {
                           int i;
-                          for(i=0;i<MAXSIZE-1;i++) space[i].cur=i+1;//备用链表的各个结点也是链在一起的
+                          for(i=0;i<MAXSIZE-2;i++) space[i].cur=i+1;//备用链表的各个结点也是链在一起的
+                          space[MAXSIZE-2]=0//备用链表的终端结点指向0
                           space[MAXSIZE-1]=0;//目前静态链表为空链表，头结点的指针域应当为NULL
                           return OK;
                       }
+              
+              静态链表的ListLengt
+                  初始条件 静态链表L已经存在
+                  操作结果 返回L中元素个数
+                  int listLength(staticLinkList L)
+                  {
+                      int j=0;
+                      int i=L[MAXSIZE-1].cur; i现在指向的是第一个结点
+                      while(i)
+                      {
+                          i=L[i].cur;
+                          j++; 若当前结点在链表内即while(i)，则j++
+                      }
+                      
+                      return j;
+                  }
+              
+              
                       
               插入操作
-              
-                   
+                  说明 类比一般链表的插入过程，先要malloc分配空间（返回地址），才能存储新的结点。这里的插入也要一个类似作用的函数。
+                  操作结果 若备用链表非空，则返回分配的结点下标，否则返回0
+                  int mallocSll(staticLinkList space)
+                  {
+                      int i=space[0].cur;//通过备用链表的头结点才能访问备用链表的第一结点
+                      if(space[0].cur) space[0].cur=space[i].cur;//原来的第二节点成为新的第一结点。或者没有多余结点了，指向0
+                      
+                      return i;
+                  }
                   
-              
-               
-               
-             
-               
-    
-          
-          
- 
-      
-         
-    
-         
-        
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+                 之后可以进行插入操作
+                 操作结果 在L的第i个元素前插入新元素e
+                 status listInsert(staticLinkList L,int i,ElemType e)
+                 {
+                     int j,k,l;
+                     k=MAXSIZE-1;//k是头指针
+                     if(i<1||i>ListLength(L)+1) return ERROR;//插入位置不合理
+                     j=mallocSll(L);//获得空闲分量的下标
+                     if(J)
+                     {
+                         L[j].data=e;
+                         for(l=i;l<=i-1;l++) k=L[k].cur;//找到第i-1个结点
+                         L[j].cur=L[K].cur;
+                         L[k].cur=j;
+                         return OK;
+                     }
+                     
+                     return ERROR;
+                     
+                 删除操作
+                     同理先实现free
+                     void freeSll(staticLinkList space,int k)
+                     {
+                         space[k].cur=space[0].cur;   就是用头插法把链表的第k个结点插入备用链表
+                         space[0].cur=k;
+                     }
+                     
+                     
+                     再实现删除
+                     status List Delete(staticLinkList L,int i)
+                     {
+                         int j,k;
+                         if(i<1||i>ListLength(L)) return ERROR;
+                         k=MAXSIZE-1;
+                         for(J=0;lj<=i-1;j++) k=L[k].cur;   找到结点i-1
+                         
+                         j=L[k].cur;
+                         L[k].cur=L[j].cur;
+                         freeSll(L,j);
+                         return OK;
+                     }
 
+
+循环链表
+    说明 -----------------------------------下方文字结合书p79-80图例看-----------------------------------------------
+    
+         将单链表的终端结点的指针由空指针改为指向头结点，就使得整个单链表形成一个环。这样的链表又叫做循环链表，头结点仍然为可选项。优点是
+         可以从当中任意一个结点出发，访问到所有节点。
+         如果不用头指针，而是用指向终端结点的尾指针rear，那么就可以将访问终端结点的时间复杂度从单链表的O(n)降到O(1)，在循环指针的作用下，访问头结点的
+         时间复杂度仍然是O(1)
+         
+         用尾指针的循环链表，很容易合并。就像两个橡皮筋，都从某处剪断，成为两条线，在断口处，又将其合成一个大橡皮筋。对于双向链表，这个两个断口，都位于
+         两个链表的头结点与尾结点之间
+         
+         p=rearA->next;  rearA要指向第二个链表的第一个结点，之后第一个链表的尾结点又要指向此链表的头结点，所以先把该头结点保存
+         
+         rearA->next=rearB->next->next;   若没有上一步就直接进行这一步，就失去对上述头结点的掌控权了
+         
+         q=rearB->next;  同理保存第二个链表的头结点，方便之后释放其内存
+         
+         rearB->next=p;  链接第二个链表的尾结点和第一个链表的头结点
+         
+         free(q);  合并后只需要一个头结点，释放第二个链表头结点的内存
+         
+       ---------------------------------------------------------------------------------------------------------------
+       
+双向链表
+-----------------------------------------------结合书黑色标记看-----------------------------
+    说明 上述各类链表都是单向性的，如果在每个结点中，再设置一个指针指向其直接前驱结点，就得到双向链表。 p82
+    
+    typedef struct dulNode
+    {
+        elemType data;
+        dulNode *prior, *next; 直接前驱与直接后继指针
+    }*duLinkList; 
+               
+    操作
+        ListLength,GetElem,LocateElem只涉及一个方向的指针，与单链表相同。但是插删操作要更改两个指针变量。代码顺序安排必须理解 p83
+        
+   
+ ---------------------------------------------------------------------------------------------------------------
 

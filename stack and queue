@@ -1,0 +1,125 @@
+栈    定义 其实是特殊的线性表，特殊在只允许再表尾进行插入和删除，对应说法是只能在栈顶出栈入栈。栈又称为后进先出（LIFO）结构
+      ADT 栈
+      Data 同线性表。元素类型相同。相邻元素具有前驱和后继关系
+      Operation
+          ......
+      endADT
+      
+      栈的顺序存储结构    说明    用数组实现。选择下标为0的一端为栈底（栈只能在栈顶出入栈，若选择下标0为栈顶，那么每次出入栈还要整体上移动原来的元素）
+                                  用top变量来只是栈顶元素在数组中的位置。若存储栈的长度为stackSize，则top<=stackSize-1。明显top为0时，为空栈，因此通常
+                                  空栈的top为-1
+                                  
+                          栈的结构定义    struct sqStack
+                                          {
+                                              int data[MAXSIZE];
+                                              int top;
+                                          }
+                          进栈操作    插入元素e为新的栈顶元素
+                                      status push(sqStack *s,int e)
+                                      {
+                                          if(s->top==MAXSIZE-1) 栈满
+                                          {
+                                              return ERROR;
+                                          }
+                                          s->top++;   栈顶指针加1
+                                          s->data[s->top]=e;   将新元素赋值给栈顶空间
+                                          return OK;
+                                      }
+                         
+                         出栈操作    若栈不空，则删除栈顶，用e返回其值，并返回OK，否则返回ERROR
+                                     status pop(sqStack *s,int *e)
+                                     {
+                                         if(s->top==-1) return ERROR;
+                                         *e=s->data[s->top];
+                                         s->top--;
+                                         return OK;
+                                    }
+                        
+                        两栈共享空间    顺序存储结构存在内存空间不足的问题。若有两个相同类型的栈，都有自己的空间，可能一个栈满，另一个还有很多空闲空间
+                                        所以完全可以通过用一个数组来存储两个栈，充分利用空闲空间。但是这个方法只适用于相同数据类型的栈，否则
+                                        反而会使问题更复杂
+                                        
+                                        一个数组内的栈1栈2，前者以下标0为栈底，后者以下标stackSize-1为栈底。top1+1=top2时为栈满
+                                        
+                                        两栈共享空间的结构
+                                        struct sqDoubleStack
+                                        {
+                                            int data[MAXSIZE];
+                                            int top1,top2;
+                                        }
+                                        
+                                        两栈共享空间的push    用参数stackNumber判断push stack1还是2
+                                        status push(sqDoubleStack *s,int e,int stackNumber)
+                                        {
+                                            if(s->top1+1==s->top2) return ERROR; 栈满
+                                            if(stackNumber==1) s->data(++s->top1)=e;
+                                            else s->data(--s->top2)=e;
+                                            return OK;
+                                        }
+                                        
+                                        两栈共享空间的pop
+                                        status pop(sqDbouleStack *s,int *e,int stackNumber)
+                                        {
+                                            if(stackNumber==1)
+                                            {
+                                                if(s->top1==-1) return ERROR; 栈1空，溢出
+                                                *e=s->data[s->top1--]
+                                            }
+                                            
+                                            else
+                                            {
+                                                if(s->top2==MAXSIZE] return ERROR;  栈2空，溢出
+                                                *e=s->data[s->top2++];
+                                            }
+                                            return OK;
+                                        }
+                                    
+                        栈的链式存储结构 这样的栈叫做链栈。本质上就是单链表。在原来的单链表中，头结点的存在是为了使得对第一结点的插删操作逻辑与
+                                         与其他结点保持一致。但是栈仅在栈顶进行插删，所以不需要头结点了。头指针指向第一结点，也就是栈顶。
+                                         对于空栈来说，top=NULL
+                                         
+                                         链栈的结构代码
+                                         typdef struct stackNode
+                                         {
+                                             int data;
+                                             stackNode *next;
+                                         }*linkStackPtr;
+                                         
+                                         struct linkStack
+                                         {
+                                             linkStackPtr top;
+                                             int count;
+                                         }
+                                         
+                                         进栈
+                                         status push(linkstack *S,int e)
+                                         {
+                                             linkStackPtr s=(linkStackPtr)malloc(sizeof(stackNode));
+                                             s->data=e;
+                                             s->next=S->top;
+                                             S->top=s;
+                                             S->count++;
+                                             return OK;
+                                         }
+                                         
+                                         出栈
+                                         status pop(linkStack *S,int *e)
+                                         {
+                                             linkStackPtr p;
+                                             if(stackEmpty(*S)) return ERROR;
+                                             *e=S->top->data;
+                                             p=S->top;
+                                             S->top=S->top->next;
+                                             free(p);
+                                             S->count--;
+                                             return OK;
+                                         }
+                                
+                                      
+                        链栈和顺序栈对比 如果元素变化可能很大，推荐使用链栈，因为它内存不受限制。如果元素变化可控，推荐使用顺序栈，因为它不适用指针定位，一来节省了内存开销，二来定位操作较为方便
+
+队列     定义 
+                        
+                        
+                                      
+                          

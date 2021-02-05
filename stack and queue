@@ -118,7 +118,104 @@
                                       
                         链栈和顺序栈对比 如果元素变化可能很大，推荐使用链栈，因为它内存不受限制。如果元素变化可控，推荐使用顺序栈，因为它不适用指针定位，一来节省了内存开销，二来定位操作较为方便
 
-队列     定义 
+队列     定义 本质上也是个线性表。只允许在表头删除，标为插入。允许插入的一端称为队尾，允许删除的一端称为队头。是先入先出结构。
+
+         顺序存储结构的不足 如果以数组下标0的位置作为队头，那么每次出队后还要移动原有元素，时间复杂度为O(n)。但如果不把队头固定在下标0，而是
+                            随出队后移，比如原来队头在下标0，出队一次后，队头变下标1，依此类推，则出队时间性能大大增加。同时为了避免只有一个元素时
+                            队头队尾重合使得处理麻烦，引入两个指针，front指向队头，rear指向队尾的下一个位置，那么front=rear时，为空队列。
+                            以上规定的不足之处在于，假设是长度为5的数组，当数组最后一个元素作为队尾时，rear就指向数组之外了；同时，很可能经过
+                            一番出入队的操作后，队尾已达数组尾，已经无法入队，但是前方还有空位，入队就造成假溢出。
+                            循环队列的出现，解决了上述不足。
+         
+         循环队列 接上文，后面满了，就从前面入队，也就是头尾相接的循环。这样的顺序存储结构的队列称为循环队列。这又带来一个问题，原来front=rear时尾空队列，现在
+                  即可能是空队列，也可能是满队列(见图4-12-7右).解决办法是将front=rear仅作为空队列条件，将数组还有一个空闲单元最为满队列的条件（图4-12-8右）。
+                  当队列满时，rear大于或者小于front，判断队列满的通用公式是 (rear+1)%queueSize==front
+                  任意情况下，队列长度的通用计算公式是 (rear-front+queueSize)%queueSize 
+                  
+                  循环队列的顺序存储结构代码
+                  struct sqQueue
+                  {
+                      int front=0,rear=0;
+                      int data[MAXSIZE];
+                  }
+                  
+                  求长度
+                  int queueLength(sqQueue Q)
+                  {
+                      return (Q.rear-Q.front+MAXSIZE)%MAXSIZE;
+                  }
+                  
+                  入队 若队列未满，则插入元素e
+                  int enQueue(sqQueue* Q,int e)
+                  {
+                      if((Q->rear+1)%MAXSIZE==Q->front) return 0;
+                      Q->data[Q->rear]=e;
+                      Q->rear=(Q->rear+1)%MAXSIZE;
+                      
+                      对于n>0,0至n-1除以n就等于0至n-1（恰与长度为n的数组下标为0至n-1符合），n至2n-1除以n也等于0至n-1
+                      可能在开头和结尾连接在一起的循环结构中找位置
+                      
+                      return 1;
+                  }
+                  
+                  出队 若队列不空，则删除Q队头元素，用e返回其值
+                  int deQueue(sqQueue* Q,int* e)
+                  {
+                      if(Q->rear==Q->front) return 0; 队列为空
+                      *e=Q->data[Q->front];
+                      Q->front=(Q->front+1)%MAXSIZE;
+                      return 1;
+                  }
+                      
+         队列的链式存储结构 说明将队头指针指向链队列的头结点（注意这里配备了头结点），队尾指针指向终端结点。空队列中front和rear都指向头结点
+                            
+                            结构实现代码
+                            typedef struct qNode  结点结构
+                            {
+                                int data;
+                                qNode* next;
+                            }*queuePtr;
+                            
+                            strcut linkQueue
+                            {
+                                queuePtr front,rear;
+                            }
+                            
+                            入队 在链表结尾插入结点
+                            int enQueue(linkQueue* Q,int e)
+                            {
+                                queuePtr s=(queuePtr)malloc(sizeof(qNode));
+                                if(!s) exit(OVERFLOW);//若存储分配失败
+                                s->data=e;
+                                s->next=NULL;
+                                Q->rear->next=s; 原来的尾结点指向新的尾结点，通过rear来访问原来的尾结点
+                                Q->rear=s;    rear利用完毕后，将其更改，也就是指向新的尾结点s
+                                return 1;
+                            }
+                            
+                            出队 要注意的是若原本队列只剩一个结点，出队前要将rear指向头结点
+                                 若队列不空，则删除Q的队头元素，用e返回其值，并返回OK，否则返回ERROR
+                            
+                            int deQueue(linkQueue* Q,int* e)
+                            {
+                                queuePtr p;
+                                if(Q->front==Q->rear) return ERROR;
+                                p=Q->front->next;  暂时保存队头给p，否则下方改变Q->fornt->next后会是去目前头结点的控制权，将来就无法将其free
+                                *e=p->data;
+                                Q->front->next=p->next; 将头结点链接新的队头，或者NULL
+                                if(Q->rear==p) 如果队头是队尾，即只剩一个元素
+                                    Q->rear=Q->front;
+                                free(p);
+                                return 1;
+                            }
+                              
+                            
+         两种存储结构的取舍 能够确定队列长度的最大值，使用顺序存储结构，它不用想链队列一样，有指针域的开销，而且每次申请或者释放结点都存在一些时间开销
+                            不能确定则使用链队列，不用考虑溢出与空间浪费，其空间性能更佳
+                            
+         
+          
+                  
                         
                         
                                       

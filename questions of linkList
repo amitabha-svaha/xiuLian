@@ -1,8 +1,112 @@
-零散技巧 1.巧妙的构造虚拟头结点。可以使遍历处理逻辑更加统⼀
-         2.灵活使⽤递归。构造递归条件，使⽤递归可以巧妙的解题。不过需要注意有些题⽬不能使⽤递归，
-         因为递归深度太深会导致超时和栈溢出
-         
+题型 合并链表 并不需要开辟新的链表空间，只要改变原来的指针指向即可
 
+例一  将两个升序链表合并为一个新的 升序 链表并返回。新链表是通过拼接给定的两个链表的所有节点组成的。    
+      链表结点最多50个
+/*
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+ 
+解一 暴力解法，逐一比较取最小。这其实也是迭代（记住迭代使用循环来实现的，每次迭代的结果作为下次迭代的依据）。
 
-题型    链表区间逆序
+class Solution {
+public:
+    //注意 从左至右比较，一次只涉及两个结点的比较。一开始是两个第一结点，之后是
+    //最新被放入新链表的结点在原来链表中的直接后继与另一个链表中剩余结点中的第一个
+
+    //技巧 最后要返回新链表的第一结点指针。所以要设置一个哑结点来保存对新链表第一结点的控制。
+           总的来说，链表问题中，设置一个头结点，可以使得遍历逻辑统一清晰
+    ListNode* mergeTwoLists(ListNode* l1, ListNode* l2) {
+        ListNode dummy;
+        ListNode* pre=&dummy;
+        while(l1!=NULL&&l2!=NULL)
+        {
+            if(l1->val<=l2->val)
+            {
+                pre->next=l1;
+                l1=l1->next;
+            }
+            else
+            {
+                pre->next=l2;
+                l2=l2->next;
+            }
+            pre=pre->next;
+        }
+        pre->next=l1!=NULL?l1:l2;
+
+        return dummy.next;
+    }
+};
+时间复杂度  最坏情况下，需要将两个链表都遍历一遍，时间复杂度为O（m+n）
+空间复杂度为 O（1）
+
+解二 递归
+要合并（l1，l2），仅在两个头结点比较大小十分容易，假设头结点l1<=l2,则原问题等价于合并(l1->next,l2)
+模式识别  子问题与原问题具有相同结构，考虑自上而下的递归
+
+第一种写法 设立一个头结点，但是只能设立在递归函数外面，否则递归会将其破坏
+class Solution {
+public:
+    ListNode head;
+    ListNode* pre=&head;
+    ListNode* mergeTwoLists(ListNode* l1, ListNode* l2) { 
+        if(l1==NULL)
+        {
+            pre->next=l2;
+            return head.next;
+        }
+        if(l2==NULL) 
+        {
+            pre->next=l1;
+            return head.next;
+        }
+
+        if(l1->val<=l2->val)
+        {
+            pre->next=l1;
+            pre=l1;
+            mergeTwoLists(l1->next,l2);
+        }
+        else
+        {
+            pre->next=l2;
+            pre=l2;
+            mergeTwoLists(l1,l2->next);
+        }
+        return head.next;
         
+    }
+};
+class Solution {
+public:
+写法二 不用头结点，直接操作原有结点
+    ListNode* mergeTwoLists(ListNode* l1, ListNode* l2) {
+        if(l1==NULL) return l2;
+        if(l2==NULL) return l1;
+        if(l1->val<l2->val)
+        {
+            l1->next=mergeTwoLists(l1->next,l2);
+            return l1;
+        }
+        else
+        {
+            l2->next=mergeTwoLists(l1,l2->next);
+            return l2;
+        }
+
+    }
+};
+时间复杂度为 O(m+n)
+空间复杂度为（递归需要叠加栈，最坏情况下） O(m+n)
+
+
+
+
+
